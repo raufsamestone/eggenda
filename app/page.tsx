@@ -22,7 +22,7 @@ import {
 import { AuthSession } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Archive, LogOut, User } from 'lucide-react';
+import { Archive, LogOut, User, MoreHorizontal, Loader2 } from 'lucide-react';
 
 // Helper function to validate task color
 const isValidTaskColor = (color: string | undefined): color is TaskColor => {
@@ -383,89 +383,100 @@ export default function Home() {
 
   return (
     <main className="w-full mx-auto p-6 space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <button
-          onClick={() => setIsCalendarOpen(true)}
-          className="text-2xl font-bold hover:text-primary transition-colors"
-        >
-          {format(currentWeek.startDate, 'MMMM yyyy')}
-        </button>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <SearchBar
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            tasks={allTasks}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <User className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {isLoading ? (
+        <div className="fixed inset-0 bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="text-4xl animate-bounce">🍳</div>
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Cooking up your tasks...</span>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {isCalendarOpen && (
-        <Calendar
-          tasks={allTasks}
-          currentDate={currentWeek.startDate}
-          onDateSelect={handleDateSelect}
-          onClose={() => setIsCalendarOpen(false)}
-        />
-      )}
-
-      <DragDropProvider onDragEnd={handleDragEnd}>
-        <div className="space-y-8">
-          <div className="flex items-center gap-2 justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/archive')}
-              className="h-8 px-3 text-xs"
+      ) : (
+        <>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <button
+              onClick={() => setIsCalendarOpen(true)}
+              className="text-2xl font-bold transition-colors"
             >
-              <Archive className="w-3 h-3 mr-1" />
-              Archive
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsTaskPoolOpen(prev => !prev)}
-              className="h-8 px-3 text-xs"
-            >
-              Unscheduled
-            </Button>
+              {format(currentWeek.startDate, 'MMMM yyyy')}
+            </button>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <SearchBar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                tasks={allTasks}
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => router.push('/archive')}>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsTaskPoolOpen(prev => !prev)}>
+                    <span className="mr-2">📋</span>
+                    Unscheduled
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
-          <WeeklyGrid
-            tasks={filteredTasks}
-            currentWeek={currentWeek}
-            onCreateTask={handleCreateTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
-            onWeekChange={handleWeekChange}
-            onToggleUnscheduled={() => setIsTaskPoolOpen(prev => !prev)}
-          />
+          {isCalendarOpen && (
+            <Calendar
+              tasks={allTasks}
+              currentDate={currentWeek.startDate}
+              onDateSelect={handleDateSelect}
+              onClose={() => setIsCalendarOpen(false)}
+            />
+          )}
 
-          <TaskPool
-            tasks={filteredUnscheduledTasks}
-            onUpdateTask={handleUpdateTask}
-            onDelete={handleDeleteTask}
-            isOpen={isTaskPoolOpen}
-            onClose={() => setIsTaskPoolOpen(false)}
-          />
-        </div>
-      </DragDropProvider>
+          <DragDropProvider onDragEnd={handleDragEnd}>
+            <div className="space-y-8">
+              <WeeklyGrid
+                tasks={filteredTasks}
+                currentWeek={currentWeek}
+                onCreateTask={handleCreateTask}
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+                onWeekChange={handleWeekChange}
+                onToggleUnscheduled={() => setIsTaskPoolOpen(prev => !prev)}
+              />
+
+              <TaskPool
+                tasks={filteredUnscheduledTasks}
+                onUpdateTask={handleUpdateTask}
+                onDelete={handleDeleteTask}
+                isOpen={isTaskPoolOpen}
+                onClose={() => setIsTaskPoolOpen(false)}
+              />
+            </div>
+          </DragDropProvider>
+        </>
+      )}
     </main>
   );
 }

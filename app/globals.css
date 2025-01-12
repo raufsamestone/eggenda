@@ -88,8 +88,9 @@
 
     --popover: 0 0% 0%;
     --popover-foreground: 60 30% 96%;
+    
+    --primary: 221.2 83.2% 53.3%;
 
-    --primary: 200 40% 50%;
     /* Muted pastel blue */
     --primary-foreground: 60 30% 96%;
 

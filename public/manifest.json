@@ -1,11 +1,11 @@
 {
-  "name": "Eggenda",
-  "short_name": "Eggenda",
+  "name": "eggenda",
+  "short_name": "eggenda",
   "description": "Weekly task agenda with no distractions.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#ffffff00",
+  "theme_color": "#ffffff00",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
