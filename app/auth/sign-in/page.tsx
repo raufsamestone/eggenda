@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -24,22 +24,22 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
+  // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.push('/');
-        router.refresh();
       }
     };
-    checkAuth();
+    checkSession();
   }, [router]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setIsLoading(true);
 
     try {
@@ -50,10 +50,7 @@ export default function Login() {
 
       if (error) throw error;
 
-      // Get the redirect URL from query params or default to '/'
-      const redirectTo = searchParams?.get('redirectTo') || '/';
-      
-      // Verify session is established
+      // Wait for session to be established
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -65,10 +62,8 @@ export default function Login() {
         description: 'Successfully logged in',
       });
 
-      // Force a hard navigation to ensure proper session handling
-      window.location.href = redirectTo;
+      router.push('/');
     } catch (error: any) {
-      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to login',
@@ -76,6 +71,16 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const form = e.currentTarget.closest('form');
+      if (form) {
+        form.requestSubmit();
+      }
     }
   };
 
@@ -104,6 +109,7 @@ export default function Login() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9"
                   required
                 />
@@ -119,6 +125,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9"
                   required
                 />
@@ -142,7 +149,11 @@ export default function Login() {
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-primary hover:underline">
+              <Link 
+                href="/auth/signup" 
+                className="text-primary hover:underline"
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+              >
                 Sign up
               </Link>
             </div>

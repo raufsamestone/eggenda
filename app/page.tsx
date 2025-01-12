@@ -321,13 +321,21 @@ export default function Home() {
       (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
 
     if (!matchesSearch) return false;
-
     if (!task.task_date) return false; // Exclude unscheduled tasks
 
-    return (
-      task.week_number === currentWeek.weekNumber &&
-      task.year === currentWeek.startDate.getFullYear()
-    );
+    // Get the task's date and the week's date range
+    const taskDate = new Date(task.task_date);
+    taskDate.setHours(0, 0, 0, 0); // Normalize time to start of day
+
+    const weekStart = new Date(currentWeek.startDate);
+    weekStart.setHours(0, 0, 0, 0); // Normalize time to start of day
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999); // Set to end of day
+
+    // Check if the task date falls within the current week's range (inclusive)
+    return taskDate >= weekStart && taskDate <= weekEnd;
   });
 
   // Filter unscheduled tasks

@@ -46,6 +46,14 @@ export default function CreateTaskDialog({ open, onClose, onSubmit, date }: Crea
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task title..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (title.trim()) {
+                    handleSubmit();
+                  }
+                }
+              }}
               className="w-full px-3 py-2 border rounded-md border-gray-200 dark:border-gray-700 
                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
                        focus:outline-none focus:ring-2 focus:ring-primary"

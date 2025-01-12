@@ -38,13 +38,14 @@ export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemPr
               rounded-xl group relative py-1 px-2 mb-1 cursor-pointer
               ${task.status === 'completed' ? 'opacity-60' : ''}
               ${task.color ? 'text-gray-900' : 'text-gray-900 dark:text-gray-100'}
-              ${snapshot.isDragging ? 'ring-2 ring-primary ring-offset-2' : ''}
+              ${snapshot.isDragging ? 'ring-2 ring-primary ring-offset-2 shadow-lg scale-105' : ''}
               hover:bg-gray-100 dark:hover:bg-gray-700
-              transition-colors duration-200
+              transition-all duration-200
               flex items-center gap-2
             `}
             style={{
               backgroundColor: task.color || "rgb(244 244 244)",
+              transform: snapshot.isDragging ? 'rotate(2deg)' : undefined,
               ...provided.draggableProps.style
             }}
           >

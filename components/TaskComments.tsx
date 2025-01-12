@@ -291,6 +291,14 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
           placeholder="Add a comment..."
           className="min-h-[60px] resize-none"
           disabled={isSubmitting}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (newComment.trim()) {
+                handleAddComment();
+              }
+            }
+          }}
         />
         <Button
           variant="default"

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { format, startOfWeek, addDays, getWeek } from 'date-fns';
 import { Task, TaskColor } from '@/types/task';
 import { Droppable } from '@hello-pangea/dnd';
-import { Plus, CalendarDays, Inbox } from 'lucide-react';
+import { Plus, CalendarDays, Inbox, ArrowRight } from 'lucide-react';
 import TaskItem from './TaskItem';
 import CreateTaskDialog from './CreateTaskDialog';
 import { Button } from '@/components/ui/button';
@@ -29,27 +29,44 @@ export default function WeeklyGrid({
   onToggleUnscheduled,
 }: WeeklyGridProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeek.startDate, i));
+  
+  // Simplify week days calculation - always use the provided startDate
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(currentWeek.startDate);
+    date.setDate(date.getDate() + i);
+    return date;
+  });
 
   const getTasksForDay = (date: Date) => {
     return tasks.filter(task => {
       if (!task.task_date) return false;
+      
+      // Normalize both dates to start of day for comparison
       const taskDate = new Date(task.task_date);
-      return format(taskDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+      taskDate.setHours(0, 0, 0, 0);
+      
+      const compareDate = new Date(date);
+      compareDate.setHours(0, 0, 0, 0);
+      
+      return taskDate.getTime() === compareDate.getTime();
     });
   };
 
   const handleCreateTask = async (title: string, description: string, color?: TaskColor) => {
     if (!selectedDate) return;
 
+    // Ensure consistent date handling
+    const taskDate = new Date(selectedDate);
+    taskDate.setHours(0, 0, 0, 0);
+
     const newTask = {
       title,
       description,
       color,
       status: 'todo' as const,
-      task_date: format(selectedDate, 'yyyy-MM-dd'),
-      week_number: getWeek(selectedDate),
-      year: selectedDate.getFullYear(),
+      task_date: format(taskDate, 'yyyy-MM-dd'),
+      week_number: getWeek(taskDate),
+      year: taskDate.getFullYear(),
     };
 
     onCreateTask(newTask);
@@ -77,6 +94,23 @@ export default function WeeklyGrid({
     return format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
   };
 
+  const handleMoveTasksToNextDay = (currentDate: Date) => {
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    const uncompletedTasks = getTasksForDay(currentDate).filter(
+      task => task.status === 'todo'
+    );
+
+    uncompletedTasks.forEach(task => {
+      onUpdateTask(task.id, {
+        task_date: format(nextDay, 'yyyy-MM-dd'),
+        week_number: getWeek(nextDay),
+        year: nextDay.getFullYear()
+      });
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -88,7 +122,7 @@ export default function WeeklyGrid({
             className="flex items-center gap-2 h-8 px-3 text-xs"
           >
             <CalendarDays className="w-3 h-3" />
-            Jump to This Week
+            This Week
           </Button>
           {/* <Button
             variant="outline"
@@ -123,9 +157,21 @@ export default function WeeklyGrid({
         {weekDays.map((date, index) => (
           <div key={index} className="space-y-1">
             <div className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-gray-700">
-              <h3 className={`text-sm font-medium ${isToday(date) ? 'text-primary' : ''}`}>
-                {format(date, 'EEE')}
-              </h3>
+              <div className="flex items-center gap-1">
+                <h3 className={`text-sm font-medium ${isToday(date) ? 'text-primary' : ''}`}>
+                  {format(date, 'EEE')}
+                </h3>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMoveTasksToNextDay(date);
+                  }}
+                  className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+                  title="Move uncompleted tasks to next day"
+                >
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
               <span className={`text-sm ${isToday(date) ? 'text-primary' : 'text-gray-500'}`}>
                 {format(date, 'd')}
               </span>
@@ -137,9 +183,11 @@ export default function WeeklyGrid({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`
-                    min-h-[150px] relative group
+                    min-h-[150px] relative group flex flex-col p-1
                     ${isToday(date) ? 'bg-primary/5 dark:bg-primary/10' : ''}
-                    ${snapshot.isDraggingOver ? 'bg-gray-100 dark:bg-gray-800' : ''}
+                    ${snapshot.isDraggingOver ? 'bg-gray-100 dark:bg-gray-800 ring-2 ring-primary ring-offset-2' : ''}
+                    transition-all duration-200
+                    ${format(date, 'E') === 'Sun' ? 'border border-dashed border-gray-200 dark:border-gray-700' : ''}
                   `}
                   onClick={(e) => {
                     if (e.currentTarget === e.target) {
@@ -147,26 +195,31 @@ export default function WeeklyGrid({
                     }
                   }}
                 >
-                  {getTasksForDay(date).map((task, index) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      index={index}
-                      onUpdate={onUpdateTask}
-                      onDelete={onDeleteTask}
-                    />
-                  ))}
-                  {provided.placeholder}
+                  <div className="flex-1">
+                    {getTasksForDay(date).map((task, index) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        index={index}
+                        onUpdate={onUpdateTask}
+                        onDelete={onDeleteTask}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                  
                   <button
-                    className="absolute right-1 top-1 p-1 rounded-full bg-gray-500/10 text-gray-500
-                             opacity-0 group-hover:opacity-100 md:block hidden
-                             hover:bg-gray-500/20 transition-all duration-200"
+                    className="w-full p-1 mt-1 rounded-md bg-gray-500/10 text-gray-500
+                             flex items-center justify-center
+                             hover:bg-gray-500/20 active:bg-gray-500/30
+                             transition-all duration-200"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedDate(date);
                     }}
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3 h-3 mr-1" />
+                    <span className="text-xs">Add task</span>
                   </button>
                 </div>
               )}
