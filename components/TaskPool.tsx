@@ -15,7 +15,7 @@ interface TaskPoolProps {
 export default function TaskPool({ tasks, onUpdateTask, onDelete, isOpen, onClose }: TaskPoolProps) {
   return (
     <div className={`
-      fixed bottom-0 left-0 right-0 h-80 bg-background border-t border-border
+      fixed bottom-0 left-0 right-0 h-80 bg-background-white dark:bg-background-dark border-t border-border
       transform transition-transform duration-300 ease-in-out z-50
       ${isOpen ? 'translate-y-0' : 'translate-y-full'}
     `}>

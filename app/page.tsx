@@ -318,7 +318,9 @@ export default function Home() {
   const filteredTasks = allTasks.filter(task => {
     const matchesSearch = searchQuery === '' ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      (task.description && typeof task.description === 'string' ? 
+        task.description.toLowerCase().includes(searchQuery.toLowerCase()) : 
+        false);
 
     if (!matchesSearch) return false;
     if (!task.task_date) return false; // Exclude unscheduled tasks
@@ -342,7 +344,9 @@ export default function Home() {
   const filteredUnscheduledTasks = allTasks.filter(task => {
     const matchesSearch = searchQuery === '' ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      (task.description && typeof task.description === 'string' ? 
+        task.description.toLowerCase().includes(searchQuery.toLowerCase()) : 
+        false);
 
     return matchesSearch && !task.task_date;
   });
@@ -379,14 +383,14 @@ export default function Home() {
 
   return (
     <main className="w-full mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <button
           onClick={() => setIsCalendarOpen(true)}
           className="text-2xl font-bold hover:text-primary transition-colors"
         >
           {format(currentWeek.startDate, 'MMMM yyyy')}
         </button>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 w-full md:w-auto">
           <SearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}

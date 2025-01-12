@@ -1,9 +1,8 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
+/* Ubuntu Font Family Classes */
 .ubuntu-light {
   font-family: "Ubuntu", serif;
   font-weight: 300;
@@ -52,7 +51,7 @@
   font-style: italic;
 }
 
-
+/* Base Theme Configuration */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -78,28 +77,82 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Dark Theme - Black base with muted pastel accents */
+    --background: 0 0% 0%;
+    /* Pure black */
+    --foreground: 60 30% 96%;
+    /* Soft white text */
+
+    --card: 0 0% 0%;
+    --card-foreground: 60 30% 96%;
+
+    --popover: 0 0% 0%;
+    --popover-foreground: 60 30% 96%;
+
+    --primary: 200 40% 50%;
+    /* Muted pastel blue */
+    --primary-foreground: 60 30% 96%;
+
+    --secondary: 280 30% 45%;
+    /* Muted pastel purple */
+    --secondary-foreground: 60 30% 96%;
+
+    --muted: 220 20% 20%;
+    /* Dark gray */
+    --muted-foreground: 220 20% 70%;
+
+    --accent: 340 35% 45%;
+    /* Muted pastel pink */
+    --accent-foreground: 60 30% 96%;
+
+    --destructive: 0 35% 45%;
+    /* Muted pastel red */
+    --destructive-foreground: 60 30% 96%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 200 40% 50%;
   }
 }
 
-body {
-  font-family: 'Ubuntu', sans-serif;
+/* Base Styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Ubuntu', sans-serif;
+  }
+}
+
+/* Component Styles */
+@layer components {
+  .button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+  }
+
+  .card {
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
+  }
+
+  .input {
+    @apply bg-background border-input text-foreground;
+  }
+
+  .badge {
+    @apply bg-primary/10 text-primary-foreground px-2 py-1 rounded-full text-sm;
+  }
+
+  .link {
+    @apply text-primary hover:text-primary/80 underline-offset-4 hover:underline;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }

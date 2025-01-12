@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from '@/components/ui/button';
 import { format, addDays, addWeeks, startOfWeek, getWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import {
   Archive,
-  X, 
-  Upload, 
-  Paperclip, 
+  X,
+  Upload,
+  Paperclip,
   RefreshCw,
   ArrowRight,
   Calendar,
@@ -49,8 +49,8 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
   const previousAttachmentsRef = useRef<string>('');
 
   // Memoize the attachments JSON string for comparison
-  const attachmentsJson = useMemo(() => 
-    taskAttachments ? JSON.stringify(taskAttachments) : '', 
+  const attachmentsJson = useMemo(() =>
+    taskAttachments ? JSON.stringify(taskAttachments) : '',
     [taskAttachments]
   );
 
@@ -72,7 +72,7 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
         taskAttachments.map(async (att) => {
           try {
             const filePath = att.url.replace(/^.*task_attachments\//, '');
-            
+
             const { data, error } = await supabase.storage
               .from('task_attachments')
               .createSignedUrl(filePath, 3600);
@@ -114,14 +114,14 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
 
   const refreshSignedUrls = async () => {
     if (!taskAttachments?.length) return;
-    
+
     setIsRefreshing(true);
     try {
       const refreshedAttachments = await Promise.all(
         taskAttachments.map(async (att) => {
           try {
             const filePath = att.url.replace(/^.*task_attachments\//, '');
-            
+
             const { data, error } = await supabase.storage
               .from('task_attachments')
               .createSignedUrl(filePath, 3600);
@@ -192,7 +192,7 @@ export default function TaskDetailDialog({
   // Auto-save when title or color changes
   useEffect(() => {
     if (title !== task.title || selectedColor !== task.color) {
-      onUpdate(task.id, { 
+      onUpdate(task.id, {
         ...(title !== task.title ? { title } : {}),
         ...(selectedColor !== task.color ? { color: selectedColor } : {})
       });
@@ -202,7 +202,7 @@ export default function TaskDetailDialog({
   const handleMoveToTomorrow = async () => {
     if (!task.task_date) return;
     const tomorrow = addDays(new Date(task.task_date), 1);
-    await onUpdate(task.id, { 
+    await onUpdate(task.id, {
       task_date: format(tomorrow, 'yyyy-MM-dd'),
       week_number: getWeek(tomorrow),
       year: tomorrow.getFullYear()
@@ -212,7 +212,7 @@ export default function TaskDetailDialog({
   const handleMoveToNextWeek = async () => {
     if (!task.task_date) return;
     const nextWeek = addWeeks(new Date(task.task_date), 1);
-    await onUpdate(task.id, { 
+    await onUpdate(task.id, {
       task_date: format(nextWeek, 'yyyy-MM-dd'),
       week_number: getWeek(nextWeek),
       year: nextWeek.getFullYear()
@@ -220,7 +220,7 @@ export default function TaskDetailDialog({
   };
 
   const handleMoveToUnscheduled = async () => {
-    await onUpdate(task.id, { 
+    await onUpdate(task.id, {
       task_date: null,
       week_number: null,
       year: null
@@ -252,7 +252,7 @@ export default function TaskDetailDialog({
     if (!event.target.files || event.target.files.length === 0) return;
     setIsUploading(true);
     const file = event.target.files[0];
-    
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${task.id}/${Date.now()}.${fileExt}`;
@@ -304,7 +304,7 @@ export default function TaskDetailDialog({
       const currentAttachments = task.attachments || [];
       // Extract the file path from the signed URL
       const filePath = attachmentUrl.split('?')[0].replace(/^.*task_attachments\//, '');
-      
+
       // Delete the file from storage
       const { error: deleteError } = await supabase.storage
         .from('task_attachments')
@@ -316,7 +316,7 @@ export default function TaskDetailDialog({
       const updatedAttachments = currentAttachments.filter(
         att => att.url.split('?')[0] !== attachmentUrl.split('?')[0]
       );
-      
+
       await onUpdate(task.id, { attachments: updatedAttachments });
     } catch (error) {
       console.error('Error deleting attachment:', error);
@@ -328,7 +328,7 @@ export default function TaskDetailDialog({
       // First update the database
       const { error: dbError } = await supabase
         .from('tasks')
-        .update({ 
+        .update({
           status: 'archived'
         })
         .eq('id', task.id);
@@ -336,7 +336,7 @@ export default function TaskDetailDialog({
       if (dbError) throw dbError;
 
       // Then update the local state through the parent component
-      onUpdate(task.id, { 
+      onUpdate(task.id, {
         status: 'archived'
       });
 
@@ -344,7 +344,7 @@ export default function TaskDetailDialog({
         title: 'Task Archived',
         description: 'The task has been moved to the archive'
       });
-      
+
       onClose();
     } catch (error: any) {
       console.error('Error archiving task:', error);
@@ -363,9 +363,9 @@ export default function TaskDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto"
-      style={{
-        backgroundColor: task.color || 'white',
-      }}
+        style={{
+          backgroundColor: task.color,
+        }}
       >
         <DialogHeader>
           <div className="flex items-start justify-between">
@@ -382,7 +382,7 @@ export default function TaskDetailDialog({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {task.task_date && (
+              {/* {task.task_date && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -391,15 +391,15 @@ export default function TaskDetailDialog({
                 >
                   <CalendarDays className="w-4 h-4" />
                 </Button>
-              )}
-              <Button
+              )} */}
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleDuplicate}
                 className="text-gray-500"
               >
                 <Copy className="w-4 h-4" />
-              </Button>
+              </Button> */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -453,9 +453,8 @@ export default function TaskDetailDialog({
             {Object.entries(TASK_COLORS).map(([name, color]) => (
               <button
                 key={color}
-                className={`w-6 h-6 rounded-full transition-transform ${
-                  selectedColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
-                }`}
+                className={`w-6 h-6 rounded-full transition-transform ${selectedColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
+                  }`}
                 style={{ backgroundColor: color }}
                 onClick={() => setSelectedColor(color as TaskColor)}
               />

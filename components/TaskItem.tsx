@@ -37,14 +37,14 @@ export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemPr
             className={`
               rounded-xl group relative py-1 px-2 mb-1 cursor-pointer
               ${task.status === 'completed' ? 'opacity-60' : ''}
-              ${task.color ? 'text-gray-900' : 'text-gray-900 dark:text-gray-100'}
+              ${task.color ? '' : ' dark:text-gray-400 dark:bg-gray-800 text-gray-900'}
               ${snapshot.isDragging ? 'ring-2 ring-primary ring-offset-2 shadow-lg scale-105' : ''}
               hover:bg-gray-100 dark:hover:bg-gray-700
               transition-all duration-200
               flex items-center gap-2
             `}
             style={{
-              backgroundColor: task.color || "rgb(244 244 244)",
+              backgroundColor: task.color,
               transform: snapshot.isDragging ? 'rotate(2deg)' : undefined,
               ...provided.draggableProps.style
             }}
@@ -55,7 +55,7 @@ export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemPr
                 w-3 h-3 rounded-sm border flex-shrink-0
                 opacity-0 group-hover:opacity-100
                 ${task.status === 'completed' ? 'opacity-100' : ''}
-                ${task.status === 'completed' 
+                ${task.status === 'completed'
                   ? 'bg-white/20 border-white/40'
                   : 'border-gray-400 dark:border-gray-500 hover:border-primary dark:hover:border-primary'
                 }
@@ -63,17 +63,17 @@ export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemPr
               `}
             >
               {task.status === 'completed' && (
-                <svg 
-                  className="w-3 h-3 text-white" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M5 13l4 4L19 7" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
                   />
                 </svg>
               )}
