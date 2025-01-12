@@ -25,6 +25,7 @@ export default function TaskList({ tasks, onDragEnd, onComplete }: TaskListProps
                 key={task.id}
                 task={task}
                 index={index}
+                //@ts-ignore
                 onComplete={onComplete}
               />
             ))}

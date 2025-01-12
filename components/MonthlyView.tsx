@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getWeek } from 'date-fns';
 import WeeklyGrid from './WeeklyGrid';
+import { Task } from '@/types/task';
 
 interface MonthlyViewProps {
   tasks: Task[];
   onTaskComplete: (taskId: string) => void;
-  onCreateTask: (day: string, rowIndex: number, title: string) => void;
+  onCreateTask: (task: Partial<Task>) => void;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onDeleteTask: (taskId: string) => void;
 }
@@ -49,15 +50,17 @@ export default function MonthlyView({
 
       <WeeklyGrid
         tasks={tasks.filter(task => {
-          const taskDate = task.date ? new Date(task.date) : null;
+          const taskDate = task.task_date ? new Date(task.task_date) : null;
           return taskDate && 
             taskDate >= monthStart && 
             taskDate <= monthEnd;
         })}
-        onTaskComplete={onTaskComplete}
+        currentWeek={{ weekNumber: getWeek(currentDate), startDate: monthStart }}
         onCreateTask={onCreateTask}
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
+        onWeekChange={() => {}}
+        onToggleUnscheduled={() => {}}
       />
     </div>
   );

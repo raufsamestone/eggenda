@@ -45,7 +45,8 @@ export default function TaskDialog({ task, onClose, onUpdate, onDelete }: TaskDi
     if (task && onUpdate) {
       onUpdate(task.id!, {
         description,
-        color
+        status: 'todo',
+        color: color as Task['color']
       });
       setIsEdited(false);
     } else {
@@ -126,7 +127,7 @@ export default function TaskDialog({ task, onClose, onUpdate, onDelete }: TaskDi
                 <span className={`
                   inline-block px-2 py-1 text-xs rounded-full
                   ${task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                    task.status === 'todo' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'}
                 `}>
                   {task.status}
@@ -136,7 +137,7 @@ export default function TaskDialog({ task, onClose, onUpdate, onDelete }: TaskDi
 
             <div>
               <label className="text-sm text-gray-500">Day</label>
-              <p className="mt-1">{task.label || 'Unassigned'}</p>
+              <p className="mt-1">{task.status || 'Unassigned'}</p>
             </div>
 
             <div className="flex justify-between pt-4 border-t">

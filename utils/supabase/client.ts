@@ -1,18 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+// import { createClient } from '@supabase/supabase-js';
 
-export const createClientComponentClient = () => {
-  if (supabaseClient) return supabaseClient;
+// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-    },
-  });
+// let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-  return supabaseClient;
-}; 
+// export const createClientComponentClient = () => {
+//   if (supabaseClient) return supabaseClient;
+
+//   supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+//     auth: {
+//       persistSession: true,
+//     },
+//   });
+
+//   return supabaseClient;
+// }; 

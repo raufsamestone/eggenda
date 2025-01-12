@@ -20,7 +20,10 @@ export default function TaskPool({ tasks, onUpdateTask, onDelete, isOpen, onClos
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
       <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex flex-col">
         <h2 className="text-lg font-semibold">Unscheduled Tasks</h2>
+        <p className="text-sm text-gray-500">{tasks.length} total</p>
+        </div>
         <button
           onClick={onClose}
           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"

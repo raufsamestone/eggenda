@@ -67,11 +67,13 @@ export default function SearchDialog({ isOpen, onClose, tasks, searchQuery, onTa
                     <span className={`
                       w-2 h-2 rounded-full
                       ${task.status === 'completed' ? 'bg-green-500' :
-                        task.status === 'in-progress' ? 'bg-blue-500' :
+                        //@ts-ignore
+                        task.status === '' ? 'bg-blue-500' :
                         'bg-gray-500'}
                     `} />
                     <h3 className="font-medium">{task.title}</h3>
-                    <span className="text-sm text-gray-500">{task.label || 'Unassigned'}</span>
+                    
+                    <span className="text-sm text-gray-500">{task.status || 'Unassigned'}</span>
                   </div>
                   {task.description && (
                     <p className="mt-1 text-sm text-gray-600 line-clamp-2">

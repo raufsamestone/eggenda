@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Task, TaskColor, TASK_COLORS } from '@/types/task';
+import { Task, TaskColor, TASK_COLORS, Comment } from '@/types/task';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from '@/components/ui/button';
 import { format, addDays, addWeeks, startOfWeek, getWeek } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Trash2, 
+  Archive,
   X, 
   Upload, 
   Paperclip, 
@@ -15,12 +16,14 @@ import {
   Calendar,
   Copy,
   Inbox,
-  CalendarDays
+  CalendarDays,
+  MessageSquare
 } from 'lucide-react';
-import { createClientComponentClient } from '@/utils/supabase/client';
+import { supabase } from '@/utils/supabase/client';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { debounce } from 'lodash';
+import TaskComments from './TaskComments';
 
 interface Attachment {
   name: string;
@@ -42,7 +45,7 @@ interface TaskDetailDialogProps {
 function useAttachments(taskAttachments: Attachment[] | undefined) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const supabase = createClientComponentClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const previousAttachmentsRef = useRef<string>('');
 
   // Memoize the attachments JSON string for comparison
@@ -172,7 +175,7 @@ export default function TaskDetailDialog({
   const [selectedColor, setSelectedColor] = useState<TaskColor | undefined>(task.color);
   const [isUploading, setIsUploading] = useState(false);
   const { attachments, isRefreshing, refreshSignedUrls } = useAttachments(task.attachments);
-  const supabase = createClientComponentClient();
+  const { toast } = useToast();
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -246,10 +249,10 @@ export default function TaskDetailDialog({
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+    if (!event.target.files || event.target.files.length === 0) return;
     setIsUploading(true);
+    const file = event.target.files[0];
+    
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${task.id}/${Date.now()}.${fileExt}`;
@@ -260,15 +263,14 @@ export default function TaskDetailDialog({
 
       if (uploadError) throw uploadError;
 
-      // Get the base URL without token
-      const { data } = await supabase.storage
+      const { data: urlData } = await supabase.storage
         .from('task_attachments')
         .getPublicUrl(fileName);
 
-      if (data) {
+      if (urlData) {
         const newAttachment = {
           name: file.name,
-          url: data.publicUrl
+          url: urlData.publicUrl
         };
 
         const currentAttachments = task.attachments || [];
@@ -321,10 +323,50 @@ export default function TaskDetailDialog({
     }
   };
 
-  console.log(task);
+  const handleArchive = async () => {
+    try {
+      // First update the database
+      const { error: dbError } = await supabase
+        .from('tasks')
+        .update({ 
+          status: 'archived'
+        })
+        .eq('id', task.id);
+
+      if (dbError) throw dbError;
+
+      // Then update the local state through the parent component
+      onUpdate(task.id, { 
+        status: 'archived'
+      });
+
+      toast({
+        title: 'Task Archived',
+        description: 'The task has been moved to the archive'
+      });
+      
+      onClose();
+    } catch (error: any) {
+      console.error('Error archiving task:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to archive task. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleCommentsChange = (newComments: Comment[]) => {
+    task.comments = newComments; // Just update the local state
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto"
+      style={{
+        backgroundColor: task.color || 'white',
+      }}
+      >
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -361,13 +403,10 @@ export default function TaskDetailDialog({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive"
-                onClick={() => {
-                  onDelete(task.id);
-                  onClose();
-                }}
+                className="text-muted-foreground hover:text-destructive"
+                onClick={handleArchive}
               >
-                <Trash2 className="w-4 h-4" />
+                <Archive className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -485,6 +524,19 @@ export default function TaskDetailDialog({
                 {isUploading ? 'Uploading...' : 'Add attachment'}
               </Button>
             </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="space-y-2">
+            <div className="font-medium flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Comments ({task.comments?.length || 0})
+            </div>
+            <TaskComments
+              taskId={task.id}
+              comments={task.comments || []}
+              onCommentsChange={handleCommentsChange}
+            />
           </div>
         </div>
       </DialogContent>

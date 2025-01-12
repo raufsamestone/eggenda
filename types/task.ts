@@ -11,11 +11,20 @@ export const TASK_COLORS = {
 
 export type TaskColor = typeof TASK_COLORS[keyof typeof TASK_COLORS];
 
+export interface Comment {
+  id: string;
+  task_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
+
 export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'todo' | 'completed';
+  status: 'todo' | 'completed' | 'archived';
   task_date: string | null;
   week_number: number | null;
   year: number | null;
@@ -23,10 +32,13 @@ export interface Task {
   row_index: number | null;
   created_at: string;
   updated_at: string;
+  archived_at?: string;
+  user_id: string;
   attachments?: Array<{
     name: string;
     url: string;
   }>;
+  comments?: Comment[];
 }
 
 export interface NewTask extends Record<string, unknown> {
@@ -45,3 +57,11 @@ export interface WeekRange {
   end: Date;
   weekNumber: number;
 } 
+export interface Comment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

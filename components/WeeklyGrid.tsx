@@ -41,7 +41,7 @@ export default function WeeklyGrid({
 
   const handleCreateTask = async (title: string, description: string, color?: TaskColor) => {
     if (!selectedDate) return;
-    
+
     const newTask = {
       title,
       description,
@@ -61,7 +61,7 @@ export default function WeeklyGrid({
     const todayWeekStart = startOfWeek(today, { weekStartsOn: 1 });
     const currentWeekStart = currentWeek.startDate;
     const diffInDays = Math.round((todayWeekStart.getTime() - currentWeekStart.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays > 0) {
       for (let i = 0; i < Math.abs(diffInDays) / 7; i++) {
         onWeekChange('next');
@@ -85,12 +85,12 @@ export default function WeeklyGrid({
             variant="outline"
             size="sm"
             onClick={handleTodayClick}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 h-8 px-3 text-xs"
           >
-            <CalendarDays className="w-4 h-4" />
-            Today
+            <CalendarDays className="w-3 h-3" />
+            Jump to This Week
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={onToggleUnscheduled}
@@ -98,7 +98,7 @@ export default function WeeklyGrid({
           >
             <Inbox className="w-4 h-4" />
             Unscheduled
-          </Button>
+          </Button> */}
         </div>
         <div className="flex items-center gap-2">
           <button
