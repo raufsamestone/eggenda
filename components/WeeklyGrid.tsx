@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { format, startOfWeek, getWeek } from "date-fns";
 import { Droppable } from "@hello-pangea/dnd";
-import { Plus, CalendarDays, ArrowRight, Settings } from "lucide-react";
+import { Plus, CalendarDays, ArrowRight, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TaskItem from "./TaskItem";
 import CreateTaskDialog from "./CreateTaskDialog";
@@ -163,15 +163,15 @@ export default function WeeklyGrid({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Command/Ctrl + Enter to create task for today
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
         const today = new Date();
         setSelectedDate(today);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
