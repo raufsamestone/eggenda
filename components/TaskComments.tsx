@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Comment } from '@/types/task';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { format } from 'date-fns';
-import { Edit2, Trash2, Send, X, Check } from 'lucide-react';
-import { supabase } from '@/utils/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Comment } from "@/types/task";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
+import { Edit2, Trash2, Send, X, Check } from "lucide-react";
+import { supabase } from "@/utils/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TaskCommentsProps {
   taskId: string;
@@ -15,10 +15,14 @@ interface TaskCommentsProps {
   onCommentsChange: (comments: Comment[]) => void;
 }
 
-export default function TaskComments({ taskId, comments, onCommentsChange }: TaskCommentsProps) {
-  const [newComment, setNewComment] = useState('');
+export default function TaskComments({
+  taskId,
+  comments,
+  onCommentsChange,
+}: TaskCommentsProps) {
+  const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState('');
+  const [editContent, setEditContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -26,19 +30,19 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
     const fetchComments = async () => {
       try {
         const { data, error } = await supabase
-          .from('comments')
-          .select('*')
-          .eq('task_id', taskId)
-          .order('created_at', { ascending: true });
+          .from("comments")
+          .select("*")
+          .eq("task_id", taskId)
+          .order("created_at", { ascending: true });
 
         if (error) throw error;
         onCommentsChange(data as Comment[]);
       } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error("Error fetching comments:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to fetch comments',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to fetch comments",
+          variant: "destructive",
         });
       }
     };
@@ -51,62 +55,64 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
 
     try {
       setIsSubmitting(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         toast({
-          title: 'Error',
-          description: 'You must be logged in to add comments',
-          variant: 'destructive',
+          title: "Error",
+          description: "You must be logged in to add comments",
+          variant: "destructive",
         });
         return;
       }
 
       // Debug log
-      console.log('Attempting to insert comment with data:', {
+      console.log("Attempting to insert comment with data:", {
         taskId,
         userId: user.id,
-        content: newComment.trim()
+        content: newComment.trim(),
       });
 
       const { data: comment, error } = await supabase
-        .from('comments')
+        .from("comments")
         .insert({
           task_id: taskId,
           content: newComment.trim(),
-          user_id: user.id
+          user_id: user.id,
         })
-        .select('*')
+        .select("*")
         .single();
 
       if (error) {
-        console.error('Insert error details:', {
+        console.error("Insert error details:", {
           message: error.message,
           details: error.details,
           hint: error.hint,
-          code: error.code
+          code: error.code,
         });
         throw error;
       }
 
-      console.log('Successfully inserted comment:', comment);
+      console.log("Successfully inserted comment:", comment);
 
       // Only update UI if we have the comment data
       if (comment) {
         onCommentsChange([...comments, comment as Comment]);
-        setNewComment('');
-        
+        setNewComment("");
+
         toast({
-          title: 'Success',
-          description: 'Comment added successfully',
+          title: "Success",
+          description: "Comment added successfully",
         });
       }
     } catch (error: any) {
-      console.error('Full error object:', error);
+      console.error("Full error object:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to add comment',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to add comment",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -119,46 +125,50 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
     try {
       setIsSubmitting(true);
       const { data, error } = await supabase
-        .from('comments')
+        .from("comments")
         .update({
           content: editContent.trim(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', commentId)
+        .eq("id", commentId)
         .select()
         .single();
 
       if (error) {
-        console.error('Update error details:', {
+        console.error("Update error details:", {
           message: error.message,
           details: error.details,
           hint: error.hint,
-          code: error.code
+          code: error.code,
         });
         throw error;
       }
 
       onCommentsChange(
-        comments.map(comment =>
+        comments.map((comment) =>
           comment.id === commentId
-            ? { ...comment, content: editContent.trim(), updated_at: new Date().toISOString() }
+            ? {
+                ...comment,
+                content: editContent.trim(),
+                updated_at: new Date().toISOString(),
+              }
             : comment
         )
       );
-      
+
       setEditingCommentId(null);
-      setEditContent('');
-      
+      setEditContent("");
+
       toast({
-        title: 'Success',
-        description: 'Comment updated successfully',
+        title: "Success",
+        description: "Comment updated successfully",
       });
     } catch (error: any) {
-      console.error('Full error object:', error);
+      console.error("Full error object:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update comment',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update comment",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -169,32 +179,32 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
     try {
       setIsSubmitting(true);
       const { error } = await supabase
-        .from('comments')
+        .from("comments")
         .delete()
-        .eq('id', commentId);
+        .eq("id", commentId);
 
       if (error) {
-        console.error('Delete error details:', {
+        console.error("Delete error details:", {
           message: error.message,
           details: error.details,
           hint: error.hint,
-          code: error.code
+          code: error.code,
         });
         throw error;
       }
 
-      onCommentsChange(comments.filter(comment => comment.id !== commentId));
-      
+      onCommentsChange(comments.filter((comment) => comment.id !== commentId));
+
       toast({
-        title: 'Success',
-        description: 'Comment deleted successfully',
+        title: "Success",
+        description: "Comment deleted successfully",
       });
     } catch (error: any) {
-      console.error('Full error object:', error);
+      console.error("Full error object:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete comment',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to delete comment",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -208,13 +218,13 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
 
   const cancelEditing = () => {
     setEditingCommentId(null);
-    setEditContent('');
+    setEditContent("");
   };
 
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        {comments.map(comment => (
+        {comments.map((comment) => (
           <div
             key={comment.id}
             className="bg-muted/50 rounded-lg p-3 space-y-2"
@@ -251,10 +261,12 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
               <>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {format(new Date(comment.created_at), 'PPp')}
-                      {comment.updated_at !== comment.created_at && ' (edited)'}
+                      {format(new Date(comment.created_at), "PPp")}
+                      {comment.updated_at !== comment.created_at && " (edited)"}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -292,7 +304,7 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
           className="min-h-[60px] resize-none"
           disabled={isSubmitting}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               if (newComment.trim()) {
                 handleAddComment();
@@ -300,16 +312,16 @@ export default function TaskComments({ taskId, comments, onCommentsChange }: Tas
             }
           }}
         />
-        <Button
-          variant="default"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={handleAddComment}
-          disabled={!newComment.trim() || isSubmitting}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
       </div>
+      <Button
+        variant="ghost"
+        size="lg"
+        className="h-8 p-0 w-full bg-gray-200 dark:bg-gray-800"
+        onClick={handleAddComment}
+        disabled={!newComment.trim() || isSubmitting}
+      >
+        <Send className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

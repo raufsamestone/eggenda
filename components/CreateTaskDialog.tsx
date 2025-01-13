@@ -122,6 +122,7 @@ export default function CreateTaskDialog({
             </Button>
             <Button 
               type="submit" 
+              className="bg-gray-800 hover:bg-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
               disabled={!title.trim() || isSubmitting}
             >
               Add task

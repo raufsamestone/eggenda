@@ -40,10 +40,10 @@ export default function TaskItem({ task, index, onUpdate, onDelete, isNewTask }:
             className={`
               group relative mb-1 cursor-pointer
               rounded-xl py-1.5 px-3
-              ${task.status === 'completed' ? 'opacity-60' : ''}
-              ${task.color ? '' : 'dark:text-gray-400 dark:bg-gray-800 text-gray-900'}
+              ${task.status === 'completed' ? 'opacity-30' : ''}
+              ${task.color ? 'dark:text-gray-900' : 'dark:text-gray-400  text-gray-900'}
               ${snapshot.isDragging ? 'ring-2 ring-primary ring-offset-2 shadow-lg scale-105' : ''}
-              hover:bg-gray-100 dark:hover:bg-gray-700
+              hover:bg-gray-100 dark:hover:bg-gray-900
               transition-all duration-200
               flex items-center justify-between gap-2
             `}

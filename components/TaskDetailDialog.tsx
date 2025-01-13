@@ -18,6 +18,7 @@ import {
   Inbox,
   CalendarDays,
   MessageSquare,
+  MoreHorizontal,
 } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -25,6 +26,13 @@ import StarterKit from "@tiptap/starter-kit";
 import { debounce } from "lodash";
 import TaskComments from "./TaskComments";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Attachment {
   name: string;
@@ -397,22 +405,6 @@ export default function TaskDetailDialog({
     [open]
   );
 
-  // Add keyboard shortcut hint to the archive button
-  const archiveButton = (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleArchive}
-      className="flex items-center gap-2"
-    >
-      <Archive className="w-4 h-4" />
-      Archive
-      <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-        <span className="text-xs">⌘</span>A
-      </kbd>
-    </Button>
-  );
-
   // Reset title when task changes
   useEffect(() => {
     setTitle(task.title);
@@ -422,9 +414,9 @@ export default function TaskDetailDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        style={{
-          backgroundColor: task.color,
-        }}
+        // style={{
+        //   backgroundColor: task.color,
+        // }}
       >
         <DialogHeader>
           <DialogTitle>
@@ -441,61 +433,65 @@ export default function TaskDetailDialog({
                 className="w-full text-xl font-semibold bg-transparent focus:outline-none focus:border-b border-primary pb-1"
                 placeholder="Task title"
               />
-              {/* <div className="text-sm text-muted-foreground mt-1">
-                
-              </div> */}
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2">
-            {task.task_date && (
-              <>
-                {archiveButton}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleMoveToTomorrow}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  Tomorrow
+        <div className="space-y-4">
+          {/* Action buttons in dropdown */}
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleMoveToNextWeek}
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Next week
-                </Button>
-              </>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleMoveToUnscheduled}
-              className="flex items-center gap-2"
-            >
-              <Inbox className="w-4 h-4" />
-              Unscheduled
-            </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {task.task_date && (
+                  <>
+                    <DropdownMenuItem onClick={handleMoveToTomorrow}>
+                      <ArrowRight className="w-3 h-3 mr-2" />
+                      Move to tomorrow
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleMoveToNextWeek}>
+                      <Calendar className="w-3 h-3 mr-2" />
+                      Move to next week
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem onClick={handleMoveToUnscheduled}>
+                  <Inbox className="w-3 h-3 mr-2" />
+                  Move to unscheduled
+                </DropdownMenuItem>
+                {task.task_date && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={handleArchive}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Archive className="w-3 h-3 mr-2" />
+                      Archive
+                      <div className="ml-auto flex items-center">
+                        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                          <span className="text-xs">⌘</span>A
+                        </kbd>
+                      </div>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Color Selection */}
-          <div className="flex gap-2">
+          {/* Color Selection - Made more compact */}
+          <div className="flex gap-1">
             {Object.entries(TASK_COLORS).map(([name, color]) => (
               <button
                 key={color}
-                className={`w-6 h-6 rounded-full transition-transform ${
+                className={`w-5 h-5 rounded-full transition-transform ${
                   selectedColor === color
                     ? "ring-2 ring-primary ring-offset-2"
                     : ""
@@ -506,82 +502,89 @@ export default function TaskDetailDialog({
             ))}
           </div>
 
-          {/* Rich Text Editor */}
-          <div className="prose dark:prose-invert max-w-none border rounded-lg p-4">
+          {/* Rich Text Editor - Made larger */}
+          <div className="prose dark:prose-invert max-w-none border rounded-lg p-4 min-h-[200px]">
             <EditorContent editor={editor} />
           </div>
 
-          {/* Attachments */}
-          <div className="space-y-2">
-            <div className="font-medium flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          {/* Tabs for Attachments and Comments */}
+          <Tabs defaultValue="comments" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="comments" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Comments ({task.comments?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger
+                value="attachments"
+                className="flex items-center gap-2"
+              >
                 <Paperclip className="w-4 h-4" />
                 Attachments ({task.attachments?.length || 0})
-              </div>
-            </div>
+              </TabsTrigger>
+            </TabsList>
 
-            {(task.attachments?.length ?? 0) > 0 && task.attachments && (
-              <div className="grid grid-cols-2 gap-2">
-                {task.attachments.map((attachment) => (
-                  <div
-                    key={attachment.url}
-                    className="flex items-center justify-between p-2 border rounded"
-                  >
-                    <a
-                      href="#"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        const signedUrl = await getSignedUrl(attachment.url);
-                        window.open(signedUrl, "_blank");
-                      }}
-                      className="text-sm text-primary hover:underline truncate"
+            <TabsContent value="attachments" className="space-y-4 mt-2">
+              {(task.attachments?.length ?? 0) > 0 && task.attachments && (
+                <div className="grid grid-cols-2 gap-2">
+                  {task.attachments.map((attachment) => (
+                    <div
+                      key={attachment.url}
+                      className="flex items-center justify-between p-2 border rounded"
                     >
-                      {attachment.name}
-                    </a>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteAttachment(attachment.url)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+                      <a
+                        href="#"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          const signedUrl = await getSignedUrl(attachment.url);
+                          window.open(signedUrl, "_blank");
+                        }}
+                        className="text-sm text-primary hover:underline truncate"
+                      >
+                        {attachment.name}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteAttachment(attachment.url)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                onChange={handleFileUpload}
-                accept="image/*,.pdf"
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept="image/*,.pdf"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    document.getElementById("file-upload")?.click()
+                  }
+                  disabled={isUploading}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Upload className="w-3 h-3 mr-1" />
+                  {isUploading ? "Uploading..." : "Add attachment"}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="comments" className="mt-2">
+              <TaskComments
+                taskId={task.id}
+                comments={task.comments || []}
+                onCommentsChange={handleCommentsChange}
               />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.getElementById("file-upload")?.click()}
-                disabled={isUploading}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {isUploading ? "Uploading..." : "Add attachment"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Comments Section */}
-          <div className="space-y-2">
-            <div className="font-medium flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Comments ({task.comments?.length || 0})
-            </div>
-            <TaskComments
-              taskId={task.id}
-              comments={task.comments || []}
-              onCommentsChange={handleCommentsChange}
-            />
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>

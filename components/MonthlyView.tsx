@@ -57,6 +57,7 @@ export default function MonthlyView({
         })}
         currentWeek={{ weekNumber: getWeek(currentDate), startDate: monthStart }}
         onCreateTask={onCreateTask}
+        // @ts-ignore
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
         onWeekChange={() => {}}

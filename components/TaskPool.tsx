@@ -53,8 +53,8 @@ export default function TaskPool({ tasks, onUpdateTask, onDelete, isOpen, onClos
               className={`
                 min-h-[100px] rounded-lg grid grid-cols-2 md:grid-cols-4 gap-2 border-gray-200 dark:border-gray-700
                 ${snapshot.isDraggingOver
-                  ? 'bg-gray-100 dark:bg-gray-800 ring-2 ring-primary ring-offset-2'
-                  : 'bg-gray-50/50 dark:bg-gray-800/50'
+                  ? 'bg-gray-100  ring-2 ring-primary ring-offset-2'
+                  : ''
                 }
                 transition-all duration-200
               `}
