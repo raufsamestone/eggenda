@@ -1,19 +1,20 @@
-# Eggenda
+# Eggenda 🍳
 
 Privacy-focused and open-source weekly task agenda with no distractions.
+
+> Inspired by the [Ivy Lee Method](https://en.wikipedia.org/wiki/Ivy_Lee_Method) and [Tweek.so](https://tweek.so) and many other productivity apps.
+
+![Eggenda Screenshot](public/screens.png)
 
 ## Features
 
 ### Task Management
 
 - 📅 Weekly grid view with customizable work days
-- ✨ Create, edit, and delete tasks
-- 🎨 Color-code tasks for better organization
-- ✅ Mark tasks as complete/incomplete
-- 📎 Attach files to tasks
-- 💬 Add comments to tasks
+- 📎 Attach any file formats like images, pdfs, etc. to tasks
+- 💬 Add comments to tasks for better context
 - 🔍 Search through all tasks
-- 📱 Responsive design for mobile and desktop
+- 📱 Mobile-friendly
 
 ### Task Organization
 
@@ -23,19 +24,16 @@ Privacy-focused and open-source weekly task agenda with no distractions.
 - 🔄 Move uncompleted tasks to next day
 - 📊 Print weekly view
 
-### URL Features
+### Save it later features
 
-- 🔗 Automatic URL title fetching
+- 🔗 Automatic URL title fetching for blog posts, articles, etc.
 - 🌐 Clickable links in tasks
 - 🏷️ URL preview with titles
 
-### User Experience
+### Misc
 
 - ⌨️ Keyboard shortcuts (⌘+Enter for new task, ⌘+A for archive)
 - 🌓 Dark mode support
-- ⚡ Real-time updates
-- 🔐 User authentication
-- ⚙️ Customizable settings
 
 ## Setup
 
@@ -126,6 +124,28 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 - `⌘/Ctrl + Enter` - Create new task for today
 - `⌘/Ctrl + A` - Archive current task (in task detail view)
+
+### PWA Support
+
+The app supports installation as a Progressive Web App (PWA) on both desktop and mobile devices:
+
+#### iOS Installation
+1. Open the app in Safari
+2. Tap the Share button
+3. Scroll down and tap "Add to Home Screen"
+4. Give the app a name (default: Eggenda)
+5. Tap "Add"
+
+#### Android Installation
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Tap "Install app" or "Add to Home screen"
+4. Follow the prompts
+
+#### Desktop Installation
+1. Open the app in Chrome, Edge, or other supported browser
+2. Look for the install icon in the address bar
+3. Click "Install" when prompted
 
 ## Contributing
 
