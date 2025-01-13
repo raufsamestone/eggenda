@@ -1,108 +1,134 @@
 'use client'
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { TASK_COLORS, TaskColor } from '@/types/task';
+import { useEffect, useRef, useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Textarea } from './ui/textarea'
+import { format } from 'date-fns'
+import { TaskColor, TASK_COLORS } from '@/types/task'
 
 interface CreateTaskDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (title: string, description: string, color?: TaskColor) => void;
-  date: Date;
+  open: boolean
+  onClose: () => void
+  onSubmit: (title: string, description: string, color?: TaskColor) => Promise<void>
+  date: Date
 }
 
-export default function CreateTaskDialog({ open, onClose, onSubmit, date }: CreateTaskDialogProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState<TaskColor | undefined>(undefined);
+export default function CreateTaskDialog({
+  open,
+  onClose,
+  onSubmit,
+  date,
+}: CreateTaskDialogProps) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [color, setColor] = useState<TaskColor | undefined>()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    onSubmit(title, description, selectedColor);
-    setTitle('');
-    setDescription('');
-    setSelectedColor(undefined);
-    onClose();
-  };
+  // Auto-focus input when dialog opens
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [open])
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!title.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      await onSubmit(title.trim(), description.trim(), color)
+      setTitle('')
+      setDescription('')
+      setColor(undefined)
+      onClose()
+    } catch (error) {
+      console.error('Error creating task:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Command/Ctrl + Enter to submit
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault()
+      handleSubmit()
+    }
+    // Escape to close
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      onClose()
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            Create Task for {date.toLocaleDateString()}
+          <DialogTitle>
+            Add task for {format(date, 'EEEE, MMMM d')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">
-              Title
-            </h3>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task title..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  if (title.trim()) {
-                    handleSubmit();
-                  }
-                }
-              }}
-              className="w-full px-3 py-2 border rounded-md border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                       focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+        <form onSubmit={handleSubmit} className="space-y-4" onKeyDown={handleKeyDown}>
+          <Input
+            ref={inputRef}
+            placeholder="Task title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="col-span-3"
+          />
+          
+          <Textarea
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="col-span-3"
+          />
+
+          <div className="flex gap-2">
+            {Object.entries(TASK_COLORS).map(([name, value]) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setColor(value)}
+                className={`w-6 h-6 rounded-full transition-all ${
+                  color === value ? 'ring-2 ring-offset-2 ring-primary' : ''
+                }`}
+                style={{ backgroundColor: value }}
+              />
+            ))}
+            {color && (
+              <button
+                type="button"
+                onClick={() => setColor(undefined)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">
-              Description
-            </h3>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description..."
-              className="min-h-[100px]"
-            />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={!title.trim() || isSubmitting}
+            >
+              Add task
+            </Button>
           </div>
-
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">
-              Color
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              {Object.entries(TASK_COLORS).map(([name, color]) => (
-                <button
-                  key={color}
-                  onClick={() => setSelectedColor(color as TaskColor)}
-                  className={`
-                    w-8 h-8 rounded-full
-                    ${selectedColor === color ? 'ring-2 ring-offset-2 ring-primary' : ''}
-                    transition-all
-                  `}
-                  style={{ backgroundColor: color }}
-                  title={name}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button className="bg-gray-900 text-white hover:bg-gray-800" onClick={handleSubmit} disabled={!title.trim()}>
-            Create Task
-          </Button>
-        </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 } 

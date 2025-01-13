@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { format, startOfWeek, getWeek } from "date-fns";
 import { Droppable } from "@hello-pangea/dnd";
-import { Plus, CalendarDays, ArrowRight } from "lucide-react";
+import { Plus, CalendarDays, ArrowRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TaskItem from "./TaskItem";
 import CreateTaskDialog from "./CreateTaskDialog";
 import type { Task, TaskColor } from "@/types/task";
+import SettingsDialog from "./SettingsDialog";
+import { useSettings } from "@/hooks/useSettings";
+import { UserSettings } from "@/types/settings";
 
 interface WeeklyGridProps {
   tasks: Task[];
@@ -37,14 +40,20 @@ export default function WeeklyGrid({
   onWeekChange,
 }: WeeklyGridProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { settings, updateSetting } = useSettings();
 
-  // Memoize weekDays calculation
+  // Use settings from the hook
   const weekDays = useCallback(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(currentWeek.startDate);
-      return new Date(date.setDate(date.getDate() + i));
+      const day = new Date(date.setDate(date.getDate() + i));
+      return day;
+    }).filter((date) => {
+      const dayName = format(date, "E"); // Gets short day name (Mon, Tue, etc.)
+      return settings.workDays.includes(dayName);
     });
-  }, [currentWeek.startDate]);
+  }, [currentWeek.startDate, settings.workDays]);
 
   const getTasksForDay = useCallback(
     (date: Date): Task[] => {
@@ -136,18 +145,61 @@ export default function WeeklyGrid({
     return format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
   }, []);
 
+  // const getGridColumns = (length: number) => {
+  //   const columns = {
+  //     1: "grid-cols-1 md:grid-cols-1",
+  //     2: "grid-cols-1 md:grid-cols-2",
+  //     3: "grid-cols-1 md:grid-cols-3",
+  //     4: "grid-cols-1 md:grid-cols-4",
+  //     5: "grid-cols-1 md:grid-cols-5",
+  //     6: "grid-cols-1 md:grid-cols-6",
+  //     7: "grid-cols-1 md:grid-cols-7",
+  //   };
+  //   return (
+  //     columns[length as keyof typeof columns] || "grid-cols-1 md:grid-cols-7"
+  //   );
+  // };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Command/Ctrl + Enter to create task for today
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        const today = new Date();
+        setSelectedDate(today);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleTodayClick}
-          className="flex items-center gap-2 h-8 px-3 text-xs"
-        >
-          <CalendarDays className="w-3 h-3" />
-          This Week
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTodayClick}
+            className="flex items-center gap-2 h-8 px-3 text-xs"
+          >
+            <CalendarDays className="w-3 h-3" />
+            This Week
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedDate(new Date())}
+            className="flex items-center gap-2 h-8 px-3 text-xs"
+          >
+            <Plus className="w-3 h-3" />
+            Add for today
+            <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>Enter
+            </kbd>
+          </Button>
+        </div>
 
         <div className="flex items-center gap-2">
           <Button
@@ -172,7 +224,19 @@ export default function WeeklyGrid({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      <div
+        className={`grid grid-cols-1 md:${
+          {
+            "1": "grid-cols-1",
+            "2": "grid-cols-2",
+            "3": "grid-cols-3",
+            "4": "grid-cols-4",
+            "5": "grid-cols-5",
+            "6": "grid-cols-6",
+            "7": "grid-cols-7",
+          }[settings.workDays.length]
+        } gap-4`}
+      >
         {weekDays().map((date, index) => (
           <div key={format(date, "yyyy-MM-dd")} className="space-y-1">
             <div className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-gray-700">
@@ -211,9 +275,10 @@ export default function WeeklyGrid({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
+                  // TODO: Add a class for today's date from settings
                   className={`
                     min-h-[150px] relative group flex flex-col p-1
-                    ${isToday(date) ? "bg-primary/5 dark:bg-primary/10" : ""}
+                    ${isToday(date) ? "" : ""} 
                     ${
                       snapshot.isDraggingOver
                         ? "bg-gray-100 dark:bg-gray-800 ring-2 ring-primary ring-offset-2"
@@ -269,6 +334,19 @@ export default function WeeklyGrid({
         onClose={() => setSelectedDate(null)}
         onSubmit={handleCreateTask}
         date={selectedDate || new Date()}
+      />
+
+      <SettingsDialog
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSave={(newSettings) => {
+          // Update each setting individually
+          Object.entries(newSettings).forEach(([key, value]) => {
+            updateSetting(key as keyof UserSettings["preferences"], value);
+          });
+          setIsSettingsOpen(false);
+        }}
       />
     </div>
   );

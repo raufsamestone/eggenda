@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Task, TaskColor, TASK_COLORS, Comment } from '@/types/task';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Button } from '@/components/ui/button';
-import { format, addDays, addWeeks, startOfWeek, getWeek } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Task, TaskColor, TASK_COLORS, Comment } from "@/types/task";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Button } from "@/components/ui/button";
+import { format, addDays, addWeeks, startOfWeek, getWeek } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import {
   Archive,
   X,
@@ -17,13 +17,14 @@ import {
   Copy,
   Inbox,
   CalendarDays,
-  MessageSquare
-} from 'lucide-react';
-import { supabase } from '@/utils/supabase/client';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { debounce } from 'lodash';
-import TaskComments from './TaskComments';
+  MessageSquare,
+} from "lucide-react";
+import { supabase } from "@/utils/supabase/client";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { debounce } from "lodash";
+import TaskComments from "./TaskComments";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface Attachment {
   name: string;
@@ -46,11 +47,11 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const previousAttachmentsRef = useRef<string>('');
+  const previousAttachmentsRef = useRef<string>("");
 
   // Memoize the attachments JSON string for comparison
-  const attachmentsJson = useMemo(() =>
-    taskAttachments ? JSON.stringify(taskAttachments) : '',
+  const attachmentsJson = useMemo(
+    () => (taskAttachments ? JSON.stringify(taskAttachments) : ""),
     [taskAttachments]
   );
 
@@ -71,32 +72,32 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
       const signedAttachments = await Promise.all(
         taskAttachments.map(async (att) => {
           try {
-            const filePath = att.url.replace(/^.*task_attachments\//, '');
+            const filePath = att.url.replace(/^.*task_attachments\//, "");
 
             const { data, error } = await supabase.storage
-              .from('task_attachments')
+              .from("task_attachments")
               .createSignedUrl(filePath, 3600);
 
             if (error) {
-              console.error('Error creating signed URL:', error);
+              console.error("Error creating signed URL:", error);
               return {
                 ...att,
                 signedUrl: att.url,
-                expires: new Date(Date.now() + 3600 * 1000)
+                expires: new Date(Date.now() + 3600 * 1000),
               };
             }
 
             return {
               ...att,
               signedUrl: data.signedUrl,
-              expires: new Date(Date.now() + 3600 * 1000)
+              expires: new Date(Date.now() + 3600 * 1000),
             };
           } catch (error) {
-            console.error('Error loading attachment:', error);
+            console.error("Error loading attachment:", error);
             return {
               ...att,
               signedUrl: att.url,
-              expires: new Date(Date.now() + 3600 * 1000)
+              expires: new Date(Date.now() + 3600 * 1000),
             };
           }
         })
@@ -120,32 +121,32 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
       const refreshedAttachments = await Promise.all(
         taskAttachments.map(async (att) => {
           try {
-            const filePath = att.url.replace(/^.*task_attachments\//, '');
+            const filePath = att.url.replace(/^.*task_attachments\//, "");
 
             const { data, error } = await supabase.storage
-              .from('task_attachments')
+              .from("task_attachments")
               .createSignedUrl(filePath, 3600);
 
             if (error) {
-              console.error('Error refreshing signed URL:', error);
+              console.error("Error refreshing signed URL:", error);
               return {
                 ...att,
                 signedUrl: att.url,
-                expires: new Date(Date.now() + 3600 * 1000)
+                expires: new Date(Date.now() + 3600 * 1000),
               };
             }
 
             return {
               ...att,
               signedUrl: data.signedUrl,
-              expires: new Date(Date.now() + 3600 * 1000)
+              expires: new Date(Date.now() + 3600 * 1000),
             };
           } catch (error) {
-            console.error('Error refreshing attachment:', error);
+            console.error("Error refreshing attachment:", error);
             return {
               ...att,
               signedUrl: att.url,
-              expires: new Date(Date.now() + 3600 * 1000)
+              expires: new Date(Date.now() + 3600 * 1000),
             };
           }
         })
@@ -153,7 +154,7 @@ function useAttachments(taskAttachments: Attachment[] | undefined) {
 
       setAttachments(refreshedAttachments);
     } catch (error) {
-      console.error('Error refreshing signed URLs:', error);
+      console.error("Error refreshing signed URLs:", error);
     } finally {
       setIsRefreshing(false);
     }
@@ -169,43 +170,58 @@ export default function TaskDetailDialog({
   onUpdate,
   onDelete,
   onDuplicate,
-  onWeekChange
+  onWeekChange,
 }: TaskDetailDialogProps) {
   const [title, setTitle] = useState(task.title);
-  const [selectedColor, setSelectedColor] = useState<TaskColor | undefined>(task.color);
+  const [selectedColor, setSelectedColor] = useState<TaskColor | undefined>(
+    task.color
+  );
   const [isUploading, setIsUploading] = useState(false);
-  const { attachments, isRefreshing, refreshSignedUrls } = useAttachments(task.attachments);
+  const { attachments, isRefreshing, refreshSignedUrls } = useAttachments(
+    task.attachments
+  );
   const { toast } = useToast();
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: task.description || '',
+    content: task.description || "",
     editable: true,
     onUpdate: debounce(({ editor }) => {
       const description = editor.getHTML();
       if (description !== task.description) {
         onUpdate(task.id, { description });
       }
-    }, 500)
+    }, 500),
   });
 
-  // Auto-save when title or color changes
-  useEffect(() => {
-    if (title !== task.title || selectedColor !== task.color) {
-      onUpdate(task.id, {
-        ...(title !== task.title ? { title } : {}),
-        ...(selectedColor !== task.color ? { color: selectedColor } : {})
-      });
-    }
-  }, [title, selectedColor, task.title, task.color, task.id, onUpdate]);
+  // Update the debounced title update to handle both title and color
+  const debouncedUpdate = useCallback(
+    debounce((updates: Partial<Task>) => {
+      onUpdate(task.id, updates);
+    }, 500),
+    [task.id, onUpdate]
+  );
+
+  // Handle title change
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    debouncedUpdate({ title: newTitle });
+  };
+
+  // Handle color change
+  const handleColorChange = (color: TaskColor) => {
+    setSelectedColor(color);
+    debouncedUpdate({ color });
+  };
 
   const handleMoveToTomorrow = async () => {
     if (!task.task_date) return;
     const tomorrow = addDays(new Date(task.task_date), 1);
     await onUpdate(task.id, {
-      task_date: format(tomorrow, 'yyyy-MM-dd'),
+      task_date: format(tomorrow, "yyyy-MM-dd"),
       week_number: getWeek(tomorrow),
-      year: tomorrow.getFullYear()
+      year: tomorrow.getFullYear(),
     });
   };
 
@@ -213,9 +229,9 @@ export default function TaskDetailDialog({
     if (!task.task_date) return;
     const nextWeek = addWeeks(new Date(task.task_date), 1);
     await onUpdate(task.id, {
-      task_date: format(nextWeek, 'yyyy-MM-dd'),
+      task_date: format(nextWeek, "yyyy-MM-dd"),
       week_number: getWeek(nextWeek),
-      year: nextWeek.getFullYear()
+      year: nextWeek.getFullYear(),
     });
   };
 
@@ -223,7 +239,7 @@ export default function TaskDetailDialog({
     await onUpdate(task.id, {
       task_date: null,
       week_number: null,
-      year: null
+      year: null,
     });
   };
 
@@ -239,38 +255,40 @@ export default function TaskDetailDialog({
     if (onDuplicate) {
       onDuplicate({
         ...task,
-        id: '', // Will be generated by the database
+        id: "", // Will be generated by the database
         title: `${task.title} (Copy)`,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
       onClose();
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!event.target.files || event.target.files.length === 0) return;
     setIsUploading(true);
     const file = event.target.files[0];
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${task.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('task_attachments')
+        .from("task_attachments")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = await supabase.storage
-        .from('task_attachments')
+        .from("task_attachments")
         .getPublicUrl(fileName);
 
       if (urlData) {
         const newAttachment = {
           name: file.name,
-          url: urlData.publicUrl
+          url: urlData.publicUrl,
         };
 
         const currentAttachments = task.attachments || [];
@@ -278,7 +296,7 @@ export default function TaskDetailDialog({
         await onUpdate(task.id, { attachments: updatedAttachments });
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
     } finally {
       setIsUploading(false);
     }
@@ -286,15 +304,15 @@ export default function TaskDetailDialog({
 
   const getSignedUrl = async (url: string) => {
     try {
-      const filePath = url.replace(/^.*task_attachments\//, '');
+      const filePath = url.replace(/^.*task_attachments\//, "");
       const { data, error } = await supabase.storage
-        .from('task_attachments')
+        .from("task_attachments")
         .createSignedUrl(filePath, 604800); // 7 days expiration
 
       if (error) throw error;
       return data.signedUrl;
     } catch (error) {
-      console.error('Error getting signed URL:', error);
+      console.error("Error getting signed URL:", error);
       return url;
     }
   };
@@ -303,23 +321,25 @@ export default function TaskDetailDialog({
     try {
       const currentAttachments = task.attachments || [];
       // Extract the file path from the signed URL
-      const filePath = attachmentUrl.split('?')[0].replace(/^.*task_attachments\//, '');
+      const filePath = attachmentUrl
+        .split("?")[0]
+        .replace(/^.*task_attachments\//, "");
 
       // Delete the file from storage
       const { error: deleteError } = await supabase.storage
-        .from('task_attachments')
+        .from("task_attachments")
         .remove([filePath]);
 
       if (deleteError) throw deleteError;
 
       // Update the task's attachments
       const updatedAttachments = currentAttachments.filter(
-        att => att.url.split('?')[0] !== attachmentUrl.split('?')[0]
+        (att) => att.url.split("?")[0] !== attachmentUrl.split("?")[0]
       );
 
       await onUpdate(task.id, { attachments: updatedAttachments });
     } catch (error) {
-      console.error('Error deleting attachment:', error);
+      console.error("Error deleting attachment:", error);
     }
   };
 
@@ -327,31 +347,32 @@ export default function TaskDetailDialog({
     try {
       // First update the database
       const { error: dbError } = await supabase
-        .from('tasks')
+        .from("tasks")
         .update({
-          status: 'archived'
+          status: "archived",
         })
-        .eq('id', task.id);
+        .eq("id", task.id);
 
       if (dbError) throw dbError;
 
       // Then update the local state through the parent component
       onUpdate(task.id, {
-        status: 'archived'
+        status: "archived",
       });
 
       toast({
-        title: 'Task Archived',
-        description: 'The task has been moved to the archive'
+        title: "Task Archived",
+        description: "The task has been moved to the archive",
       });
 
       onClose();
     } catch (error: any) {
-      console.error('Error archiving task:', error);
+      console.error("Error archiving task:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to archive task. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description:
+          error.message || "Failed to archive task. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -360,53 +381,73 @@ export default function TaskDetailDialog({
     task.comments = newComments; // Just update the local state
   };
 
+  // Add hotkey for archiving
+  useHotkeys(
+    "mod+a",
+    (e) => {
+      e.preventDefault();
+      if (open) {
+        handleArchive();
+      }
+    },
+    {
+      enabled: open, // Only enable when dialog is open
+      preventDefault: true,
+    },
+    [open]
+  );
+
+  // Add keyboard shortcut hint to the archive button
+  const archiveButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleArchive}
+      className="flex items-center gap-2"
+    >
+      <Archive className="w-4 h-4" />
+      Archive
+      <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+        <span className="text-xs">⌘</span>A
+      </kbd>
+    </Button>
+  );
+
+  // Reset title when task changes
+  useEffect(() => {
+    setTitle(task.title);
+  }, [task.title]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto"
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{
           backgroundColor: task.color,
         }}
       >
         <DialogHeader>
-          <div className="flex items-start justify-between">
+          <DialogTitle>
+            {task.task_date
+              ? format(new Date(task.task_date), "PPP")
+              : "No date"}
+          </DialogTitle>
+          <div className="flex items-center justify-between">
             <div className="flex-1">
-              <DialogTitle className="sr-only">Task Details</DialogTitle>
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleTitleChange}
                 className="w-full text-xl font-semibold bg-transparent focus:outline-none focus:border-b border-primary pb-1"
+                placeholder="Task title"
               />
-              <div className="text-sm text-gray-500 mt-1">
-                {task.task_date ? format(new Date(task.task_date), 'PPP') : 'No date'}
-              </div>
+              {/* <div className="text-sm text-muted-foreground mt-1">
+                
+              </div> */}
             </div>
             <div className="flex items-center gap-2">
-              {/* {task.task_date && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGoToDate}
-                  className="text-gray-500"
-                >
-                  <CalendarDays className="w-4 h-4" />
-                </Button>
-              )} */}
-              {/* <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDuplicate}
-                className="text-gray-500"
-              >
-                <Copy className="w-4 h-4" />
-              </Button> */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-destructive"
-                onClick={handleArchive}
-              >
-                <Archive className="w-4 h-4" />
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -417,6 +458,7 @@ export default function TaskDetailDialog({
           <div className="flex flex-wrap gap-2">
             {task.task_date && (
               <>
+                {archiveButton}
                 <Button
                   variant="outline"
                   size="sm"
@@ -453,10 +495,13 @@ export default function TaskDetailDialog({
             {Object.entries(TASK_COLORS).map(([name, color]) => (
               <button
                 key={color}
-                className={`w-6 h-6 rounded-full transition-transform ${selectedColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
-                  }`}
+                className={`w-6 h-6 rounded-full transition-transform ${
+                  selectedColor === color
+                    ? "ring-2 ring-primary ring-offset-2"
+                    : ""
+                }`}
                 style={{ backgroundColor: color }}
-                onClick={() => setSelectedColor(color as TaskColor)}
+                onClick={() => handleColorChange(color as TaskColor)}
               />
             ))}
           </div>
@@ -487,7 +532,7 @@ export default function TaskDetailDialog({
                       onClick={async (e) => {
                         e.preventDefault();
                         const signedUrl = await getSignedUrl(attachment.url);
-                        window.open(signedUrl, '_blank');
+                        window.open(signedUrl, "_blank");
                       }}
                       className="text-sm text-primary hover:underline truncate"
                     >
@@ -516,11 +561,11 @@ export default function TaskDetailDialog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => document.getElementById('file-upload')?.click()}
+                onClick={() => document.getElementById("file-upload")?.click()}
                 disabled={isUploading}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {isUploading ? 'Uploading...' : 'Add attachment'}
+                {isUploading ? "Uploading..." : "Add attachment"}
               </Button>
             </div>
           </div>
@@ -541,4 +586,4 @@ export default function TaskDetailDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

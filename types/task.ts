@@ -39,6 +39,12 @@ export interface Task {
     url: string;
   }>;
   comments?: Comment[];
+  metadata?: {
+    urlTitle?: string
+    originalUrl?: string
+    urlFetchedAt?: string
+    [key: string]: any
+  }
 }
 
 export interface NewTask extends Record<string, unknown> {

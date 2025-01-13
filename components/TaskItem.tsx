@@ -5,15 +5,17 @@ import { Task } from '@/types/task';
 import { Draggable } from '@hello-pangea/dnd';
 import { Check } from 'lucide-react';
 import TaskDetailDialog from './TaskDetailDialog';
+import TaskUrlTitle from './TaskUrlTitle';
 
 interface TaskItemProps {
   task: Task;
   index: number;
   onUpdate: (id: string, updates: Partial<Task>) => void;
   onDelete: (id: string) => void;
+  isNewTask?: boolean;
 }
 
-export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemProps) {
+export default function TaskItem({ task, index, onUpdate, onDelete, isNewTask }: TaskItemProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const handleToggleComplete = (e: React.MouseEvent) => {
@@ -52,10 +54,10 @@ export default function TaskItem({ task, index, onUpdate, onDelete }: TaskItemPr
             }}
           >
             <span className={`
-              text-sm truncate
+              flex-1 truncate
               ${task.status === 'completed' ? 'line-through opacity-70' : ''}
             `}>
-              {task.title}
+              <TaskUrlTitle task={task} onUpdate={onUpdate} />
             </span>
 
             {/* Checkbox - Hidden on desktop by default, visible on hover and mobile */}
