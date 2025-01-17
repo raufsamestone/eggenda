@@ -48,7 +48,18 @@ export default function Login() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Special check for unconfirmed email
+        if (error.message === "Email not confirmed") {
+          toast({
+            title: 'Email Verification Required',
+            description: 'Please verify your email address. Check your inbox for the confirmation email.',
+            variant: 'warning',
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Wait for session to be established
       const { data: { session } } = await supabase.auth.getSession();
@@ -58,7 +69,7 @@ export default function Login() {
       }
 
       toast({
-        title: 'Welcome back!',
+        title: 'Welcome!',
         description: 'Successfully logged in',
       });
 
@@ -66,7 +77,7 @@ export default function Login() {
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to login',
+        description: error.message || 'Login failed',
         variant: 'destructive',
       });
     } finally {
