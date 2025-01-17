@@ -15,6 +15,7 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     .single()
 
   if (error) {
+    console.error('Error fetching user settings:', error)
     return null
   }
 
