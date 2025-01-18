@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       
       if (error) {
         console.error('Auth error:', error);
-        return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=Authentication failed`);
+        return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=Authentication failed`);
       }
 
       // Successful authentication
@@ -25,10 +25,10 @@ export async function GET(request: Request) {
     }
 
     // No code provided
-    return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=No code provided`);
+    return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=No code provided`);
   } catch (error) {
     console.error('Callback error:', error);
     //@ts-ignore
-    return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=Something went wrong`);
+    return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=Something went wrong`);
   }
 }

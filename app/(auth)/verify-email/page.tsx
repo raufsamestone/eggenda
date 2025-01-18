@@ -14,7 +14,7 @@ export default function VerifyEmail() {
       </div>
 
       <div className="text-center">
-        <Link href="/auth/sign-in">
+        <Link href="/sign-in">
           <Button variant="link">
             Back to sign in
           </Button>

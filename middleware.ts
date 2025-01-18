@@ -2,7 +2,7 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicRoutes = ['/auth/sign-in', '/auth/signup', '/auth/callback'];
+const publicRoutes = ['/sign-in', '/sign-up', '/callback'];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
   const isAuthRoute = publicRoutes.includes(path);
 
   if (!session && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
+    return NextResponse.redirect(new URL('/sign-in', req.url));
   }
 
   if (session && isAuthRoute) {
