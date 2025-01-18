@@ -150,7 +150,7 @@ export default function Login() {
             <div className="text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
               <Link 
-                href="/auth/sign-up" 
+                href="/sign-up" 
                 className="text-primary hover:underline"
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
               >

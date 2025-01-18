@@ -101,7 +101,7 @@ export default function Home() {
       console.error("Error signing out:", error);
       return;
     }
-    router.push("/auth/sign-in");
+    router.push("/sign-in");
     router.refresh();
   };
 

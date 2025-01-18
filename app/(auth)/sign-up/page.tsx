@@ -24,7 +24,7 @@ export default function SignUp() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/callback`,
         },
       });
 
@@ -33,7 +33,7 @@ export default function SignUp() {
         return;
       }
 
-      router.push('/auth/verify-email');
+      router.push('/verify-email');
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
@@ -85,7 +85,7 @@ export default function SignUp() {
 
       <div className="text-center text-sm">
         Already have an account?{' '}
-        <Link href="/auth/sign-in" className="text-primary hover:underline">
+        <Link href="/sign-in" className="text-primary hover:underline">
           Sign in
         </Link>
       </div>
