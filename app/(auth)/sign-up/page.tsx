@@ -6,6 +6,7 @@ import { supabase } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -42,6 +43,7 @@ export default function SignUp() {
   };
 
   return (
+    <Card className=' w-full max-w-md p-6 space-y-6'>
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Create an account</h1>
@@ -90,5 +92,6 @@ export default function SignUp() {
         </Link>
       </div>
     </div>
+    </Card>
   );
 } 
