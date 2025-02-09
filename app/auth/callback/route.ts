@@ -14,14 +14,13 @@ export async function GET(request: Request) {
       const cookieStore = cookies();
       const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      
+
       if (error) {
         console.error('Auth error:', error);
         return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=Authentication failed`);
       }
 
-      // Successful authentication
-      return NextResponse.redirect(`${requestUrl.origin}${next}`);
+      return NextResponse.redirect(`${requestUrl.origin}/`);
     }
 
     // No code provided
