@@ -1,4 +1,3 @@
-// components/providers/auth-provider.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -16,62 +15,71 @@ const AuthContext = createContext<AuthContextType>({ user: null, isLoading: true
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  // Public routes that don't need authentication
-  const publicRoutes = ['/auth/login', '/auth/sign-in', '/auth/signup', '/auth/verify-email', '/auth/reset-password'];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    // Check auth state
     const checkUser = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-
-        if (!session && !isPublicRoute) {
-          // No session and trying to access protected route
-          router.push('/auth/sign-in');
-        } else if (session && isPublicRoute) {
-          // Has session but trying to access public route
-          router.push('/');
-        }
-
+        const { data: { session } } = await supabase.auth.getSession();
         setUser(session?.user || null);
       } catch (error) {
-        console.error('Error checking auth:', error);
-        setUser(null);
+        console.error('Auth check error:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkUser();
+    if (isMounted) {
+      checkUser();
+    }
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-      if (!session && !isPublicRoute) {
-        router.push('/auth/sign-in');
-      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, isPublicRoute]);
+  }, [isMounted]);
+
+  useEffect(() => {
+    if (!isMounted || isLoading) return;
+
+    if (user && pathname.startsWith('/auth/')) {
+      router.push('/');
+      return;
+    }
+
+    if (!user && pathname.startsWith('/auth/')) {
+      return;
+    }
+
+    if (!user && !pathname.startsWith('/auth/')) {
+      router.push('/auth/sign-in');
+    }
+  }, [user, pathname, router, isLoading, isMounted]);
+
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider value={{ user, isLoading }}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -1,25 +1,68 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { UserSettings } from '@/types/settings'
-
-const supabase = createClientComponentClient()
+import { supabase } from './supabase/client'
 
 const DEFAULT_PREFERENCES = {
   workDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
   theme: 'system'
 } as const
 
+// User Settings'i getiren fonksiyon
 export async function getUserSettings(): Promise<UserSettings | null> {
-  const { data: settings, error } = await supabase
-    .from('user_settings')
-    .select('*')
-    .single()
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
 
-  if (error) {
-    console.error('Error fetching user settings:', error)
-    return null
+    if (!session?.user) {
+      console.log('No authenticated user found');
+      return null;
+    }
+
+    const { data: settings, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user settings:', error);
+      return null;
+    }
+
+    return settings;
+  } catch (error) {
+    console.error('Unexpected error fetching user settings:', error);
+    return null;
   }
+}
 
-  return settings
+// Yeni ayarları kaydetmek için fonksiyon
+export async function updateUserSettings(settings: Partial<UserSettings>): Promise<boolean> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.user) {
+      console.log('No authenticated user found');
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: session.user.id,
+        ...settings,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Error updating user settings:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error updating user settings:', error);
+    return false;
+  }
 }
 
 export async function updateUserPreference<K extends keyof UserSettings['preferences']>(
@@ -77,4 +120,4 @@ export function getPreference<K extends keyof UserSettings['preferences']>(
   defaultValue: UserSettings['preferences'][K]
 ): UserSettings['preferences'][K] {
   return settings?.preferences?.[key] ?? defaultValue
-} 
+}

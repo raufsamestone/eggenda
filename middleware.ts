@@ -2,21 +2,25 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicRoutes = ['/auth/sign-in', '/auth/signup', '/auth/callback'];
-
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-  const { data: { session } } = await supabase.auth.getSession();
   const path = req.nextUrl.pathname;
-  const isAuthRoute = publicRoutes.includes(path);
 
-  if (!session && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
+  // Auth sayfalarına ve public assets'lere serbest erişim ver
+  if (path.startsWith('/auth/') ||
+      path.includes('favicon') ||
+      path.includes('.ico') ||
+      path.includes('apple-icon') ||
+      path.includes('icon')) {
+    return res;
   }
 
-  if (session && isAuthRoute) {
-    return NextResponse.redirect(new URL('/', req.url));
+  // Diğer tüm sayfalar için auth kontrolü yap
+  const supabase = createMiddlewareClient({ req, res });
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
   }
 
   return res;
@@ -24,6 +28,13 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    /*
+     * Match all request paths except:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - public folder files
+     */
+    '/((?!api|_next/static|_next/image|assets|public).*)',
   ],
 };
