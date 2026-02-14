@@ -6,6 +6,7 @@ import { supabase } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ export default function SignUp() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/callback`,
         },
       });
 
@@ -33,7 +34,7 @@ export default function SignUp() {
         return;
       }
 
-      router.push('/auth/verify-email');
+      router.push('/verify-email');
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
@@ -42,6 +43,7 @@ export default function SignUp() {
   };
 
   return (
+    <Card className=' w-full max-w-md p-6 space-y-6'>
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Create an account</h1>
@@ -85,10 +87,11 @@ export default function SignUp() {
 
       <div className="text-center text-sm">
         Already have an account?{' '}
-        <Link href="/auth/sign-in" className="text-primary hover:underline">
+        <Link href="/sign-in" className="text-primary hover:underline">
           Sign in
         </Link>
       </div>
     </div>
+    </Card>
   );
 } 

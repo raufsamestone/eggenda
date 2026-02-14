@@ -43,6 +43,13 @@ Privacy-focused and open-source weekly task agenda with no distractions.
 - npm or yarn
 - Supabase account
 
+### Install Dependencies
+
+Run the following command to install the required packages:
+```
+npm install @hello-pangea/dnd
+```
+
 ### Supabase Setup
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
