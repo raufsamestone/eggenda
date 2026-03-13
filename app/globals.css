@@ -157,3 +157,9 @@
     text-wrap: balance;
   }
 }
+
+.dark [class*='text-'] {
+  --tw-text-opacity: 0.9;
+  color: #cfcfcf;
+}
+
