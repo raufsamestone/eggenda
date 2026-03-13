@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Public routes that don't need authentication
-  const publicRoutes = ['/auth/login', '/auth/sign-in', '/auth/signup', '/auth/verify-email', '/auth/reset-password'];
+  const publicRoutes = ['/auth/login', '/auth/sign-in', '/auth/sign-up', '/auth/verify-email', '/auth/reset-password'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkUser();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user || null);
       if (!session && !isPublicRoute) {
         router.push('/auth/sign-in');

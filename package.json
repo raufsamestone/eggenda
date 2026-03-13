@@ -23,7 +23,7 @@
     "@radix-ui/react-tabs": "^1.1.2",
     "@radix-ui/react-toast": "^1.2.4",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "^2.47.16",
     "@tiptap/extension-image": "^2.11.2",
     "@tiptap/extension-link": "^2.11.2",
     "@tiptap/react": "^2.11.2",
