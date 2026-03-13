@@ -36,7 +36,7 @@ export default function Login() {
     };
     checkSession();
   }, [router]);
-  
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
@@ -50,9 +50,9 @@ export default function Login() {
 
       if (error) throw error;
 
-      // Wait for session to be established
+
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         throw new Error('Failed to establish session');
       }
@@ -133,9 +133,9 @@ export default function Login() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isLoading || !email || !password}
             >
               {isLoading ? (
@@ -149,8 +149,8 @@ export default function Login() {
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link 
-                href="/auth/signup" 
+              <Link
+                href="/auth/sign-up"
                 className="text-primary hover:underline"
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
               >
